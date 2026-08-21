@@ -3,9 +3,9 @@
 | | |
 |---|---|
 | Họ và tên | Phạm Nam Khánh |
-| MSSV | ___ |
+| MSSV | 2A202601718 |
 | Lớp / Khóa | K4 |
-| Repo GitHub | https://github.com/___/___ |
+| Repo GitHub | https://github.com/KPN147/K4-Track2-Day21-CI-CD-for-AI-Systems.git |
 | Ngày nộp | 21/08/2026 |
 
 ---
@@ -45,4 +45,8 @@ Tập dữ liệu có khoảng 24,8% mẫu thuộc lớp thu nhập cao và kho�
 
 ## 5. Phần Bonus Đã Thực Hiện
 
-Chưa thực hiện bonus hoặc chưa có bằng chứng đủ để xác nhận bonus.
+- [x] Bonus 1 - Tracking MLflow từ xa với DagsHub: Các experiment được ghi lên MLflow server của DagsHub; ảnh minh chứng: `06-dagshub-mlflow.png`.
+- [x] Bonus 2 - Điều chỉnh ngưỡng quyết định: Quét threshold từ 0.10 đến 0.90, chọn threshold có F1 cao nhất và sử dụng threshold đó khi serving.
+- [x] Bonus 3 - Báo cáo precision / recall tự động: Tạo `outputs/detail.txt` với confusion matrix, precision và recall; file được upload cùng report artifact.
+- [x] Bonus 4 - Hoàn trả về phiên bản trước: So sánh F1 model mới với model hiện tại, lưu phiên bản trước và hủy triển khai nếu F1 mới thấp hơn.
+- [x] Bonus 5 - Cảnh báo lệch lạc dữ liệu: Tính `positive_rate`, cảnh báo khi lệch quá 5 điểm phần trăm so với tỷ lệ tham chiếu và ghi kết quả vào report.
