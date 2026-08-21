@@ -1,103 +1,48 @@
 # Báo Cáo Lab Day 21 - CI/CD cho AI Systems
 
-<!--
-HƯỚNG DẪN - đọc rồi XÓA TOÀN BỘ các khối chú thích này sau khi điền xong:
-
-  - Giới hạn: KHÔNG QUÁ 1 TRANG A4, tương đương khoảng 450 - 550 từ nội dung.
-  - Chỉ điền vào các chỗ ___ và các ô trong bảng. Không thêm mục mới.
-  - Viết bằng câu hoàn chỉnh, không gạch đầu dòng cụt lủn.
-  - Kiểm tra độ dài sau khi đã xóa hết chú thích:
-        wc -w nop-bai/bao-cao.md
-    và xem trước bản in bằng cách mở file trên GitHub rồi Ctrl+P / Cmd+P.
--->
-
 | | |
 |---|---|
-| Họ và tên | ___ |
+| Họ và tên | Phạm Nam Khánh |
 | MSSV | ___ |
 | Lớp / Khóa | K4 |
 | Repo GitHub | https://github.com/___/___ |
-| Ngày nộp | ___ |
+| Ngày nộp | 21/08/2026 |
 
 ---
 
 ## 1. Bộ Siêu Tham Số Đã Chọn và Lý Do
 
-<!-- Khoảng 120 - 150 từ. Điền kết quả thật từ MLflow UI ở Bước 1, tối thiểu 3 lần chạy. -->
-
 | Lần chạy | n_estimators | learning_rate | max_depth | f1_score | accuracy |
 |---|---|---|---|---|---|
-| 1 | ___ | ___ | ___ | ___ | ___ |
-| 2 | ___ | ___ | ___ | ___ | ___ |
-| 3 | ___ | ___ | ___ | ___ | ___ |
+| 1 | 200 | 0.1 | 5 | 0.714932126... | 0.874 |
+| 2 | 100 | 0.1 | 3 | 0.710900473... | 0.878 |
+| 3 | 50 | 0.05 | 2 | 0.605128205... | 0.846 |
 
-**Bộ siêu tham số đã chọn:** `n_estimators=___`, `learning_rate=___`, `max_depth=___`.
+**Bộ siêu tham số đã chọn:** `n_estimators=200`, `learning_rate=0.1`, `max_depth=5`.
 
-**Lý do:** ___
-
-<!--
-Trả lời trong phần Lý do:
-  - Vì sao bộ này tốt hơn các bộ còn lại (dựa trên f1_score, không phải accuracy)?
-  - Lần chạy có accuracy cao nhất có trùng với lần có f1_score cao nhất không?
-    Nếu không, điều đó nói lên điều gì?
-  - Bạn quan sát thấy đánh đổi nào giữa n_estimators và learning_rate?
--->
-
----
+**Lý do:** Bộ 200/0.1/5 có F1 cao nhất trong ba lần chạy, đạt khoảng 0.7149. Bộ 100/0.1/3 có accuracy cao nhất là 0.878 nhưng F1 thấp hơn, khoảng 0.7109. Điều này cho thấy accuracy không nhất thiết chọn ra mô hình tốt nhất cho lớp thu nhập cao. Trong hai cấu hình có learning rate 0.1, tăng số estimator và độ sâu cây giúp F1 tăng nhẹ; cấu hình learning rate 0.05 với ít estimator có F1 thấp nhất.
 
 ## 2. Vì Sao Ngưỡng Chất Lượng Đặt Trên F1 Chứ Không Phải Accuracy
 
-<!-- Khoảng 120 - 150 từ. -->
-
-___
-
-<!--
-Cần nêu được:
-  - Phân bố lớp của tập dữ liệu (tỷ lệ lớp thu nhập > 50K) và hệ quả của nó.
-  - Accuracy của một mô hình luôn trả lời "thu nhập thấp" là bao nhiêu, vì sao con số
-    đó gây hiểu nhầm.
-  - F1 của lớp dương đo điều gì mà accuracy không đo được.
-  - Vì sao KHÔNG dùng average="weighted" hay average="macro" khi gọi f1_score.
--->
-
----
+Tập dữ liệu có khoảng 24,8% mẫu thuộc lớp thu nhập cao và khoảng 75,2% thuộc lớp thu nhập thấp. Vì vậy, một mô hình luôn dự đoán “thu nhập thấp” vẫn có thể đạt accuracy khoảng 0.752, dù không phát hiện được mẫu thu nhập cao nào. F1 của lớp dương kết hợp precision và recall, nên phản ánh tốt hơn khả năng nhận diện nhóm thu nhập cao. Quality gate dùng `f1_score(y_eval, preds)` mặc định cho lớp dương, không dùng `average="weighted"` hoặc `average="macro"`, vì các cách đó có thể bị lớp đa số kéo cao và làm sai ý nghĩa ngưỡng 0.65.
 
 ## 3. Khó Khăn Gặp Phải và Cách Giải Quyết
 
-<!-- Nêu 2 - 3 khó khăn thật, mỗi ô một câu ngắn. -->
-
 | Khó khăn | Nguyên nhân | Cách giải quyết |
 |---|---|---|
-| ___ | ___ | ___ |
-| ___ | ___ | ___ |
-| ___ | ___ | ___ |
+| MLflow không chạy được lúc đầu | Môi trường thiếu `pkg_resources` khi dùng MLflow 2.13.0 | Tạo lại môi trường bằng `uv`, dùng Python 3.11 và cài `setuptools<81`. |
+| API không khởi động trên VM | Sai indentation trong `src/serve.py` và sau đó model không tương thích phiên bản scikit-learn | Sửa indentation, kiểm tra chạy thủ công, rồi đồng bộ `scikit-learn==1.4.2`, `joblib==1.4.2` và `numpy==1.26.4`. |
+| Triển khai CI/CD cần nhiều thông tin xác thực | DVC/GCS và SSH cần credentials riêng | Cấu hình Service Account cho GCS và lưu credentials, bucket, VM host, user, SSH key trong GitHub Secrets. |
 
----
-
-## 4. So Sánh Bước 2 và Bước 3 (bắt buộc, 2 - 3 câu)
-
-<!-- Lấy số liệu từ bảng ở mục 3.6 của tasks/buoc-3.md. -->
+## 4. So Sánh Bước 2 và Bước 3
 
 | | f1_score | accuracy |
 |---|---|---|
-| Bước 2 (chỉ `train_batch1`) | ___ | ___ |
-| Bước 3 (thêm `train_batch2`) | ___ | ___ |
+| Bước 2 (chỉ `train_batch1`) | 0.7149321267 | 0.874 |
+| Bước 3 (thêm `train_batch2`) | 0.7354260090 | 0.882 |
 
-**Nhận xét:** ___
+**Nhận xét:** Sau khi bổ sung `train_batch2`, F1 tăng từ 0.7149 lên 0.7354 và accuracy tăng từ 0.874 lên 0.882. Bước 3 được kích hoạt bởi commit dữ liệu và hoàn thành toàn bộ pipeline, cho thấy quy trình huấn luyện và triển khai liên tục hoạt động đúng.
 
-<!--
-Một câu trả lời trung thực kiểu "f1 giảm 0,01 vì dữ liệu mới cùng phân phối, không mang
-thêm thông tin mới" được đánh giá cao hơn kết luận sai rằng thêm dữ liệu luôn tốt hơn.
--->
+## 5. Phần Bonus Đã Thực Hiện
 
----
-
-## 5. Phần Bonus Đã Thực Hiện (nếu có)
-
-<!-- Xóa cả mục 5 nếu không làm bonus. Mỗi bonus tối đa 1 dòng. -->
-
-- [ ] Bonus 1 - Tracking MLflow từ xa với DagsHub: ___
-- [ ] Bonus 2 - Điều chỉnh ngưỡng quyết định: ___
-- [ ] Bonus 3 - Báo cáo precision / recall tự động: ___
-- [ ] Bonus 4 - Hoàn trả về phiên bản trước: ___
-- [ ] Bonus 5 - Cảnh báo lệch lạc dữ liệu: ___
+Chưa thực hiện bonus hoặc chưa có bằng chứng đủ để xác nhận bonus.

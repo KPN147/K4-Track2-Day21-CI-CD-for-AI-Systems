@@ -29,7 +29,13 @@ def download_model():
 
 
 download_model()
-model = joblib.load(MODEL_PATH)
+loaded_model = joblib.load(MODEL_PATH)
+if isinstance(loaded_model, dict) and "model" in loaded_model:
+    model = loaded_model["model"]
+    DECISION_THRESHOLD = float(loaded_model.get("threshold", 0.5))
+else:
+    model = loaded_model
+    DECISION_THRESHOLD = 0.5
 
 
 class ScoreRequest(BaseModel):
@@ -44,7 +50,6 @@ def healthz():
 
     Tra ve: {"status": "ok"}
     """
-    # TODO 5: Tra ve dict {"status": "ok"}
     return {"status": "ok"}
 
 
@@ -61,12 +66,13 @@ def score(req: ScoreRequest):
         relationship, sex, capital_gain, capital_loss, hours_per_week
     """
     if len(req.features) != 10:
-    raise HTTPException(
-        status_code=400,
-        detail="Expected 10 features (adult income)",
-    )
+        raise HTTPException(
+            status_code=400,
+            detail="Expected 10 features (adult income)",
+        )
 
-    pred = int(model.predict([req.features])[0])
+    probability = float(model.predict_proba([req.features])[0][1])
+    pred = int(probability >= DECISION_THRESHOLD)
     label = "thu_nhap_cao" if pred == 1 else "thu_nhap_thap"
 
     return {
